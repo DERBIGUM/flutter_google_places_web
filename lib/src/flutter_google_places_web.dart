@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/animation.dart';
 import 'package:dio/dio.dart';
 import 'package:rainbow_color/rainbow_color.dart';
 import 'package:uuid/uuid.dart';
@@ -44,15 +43,19 @@ class FlutterGooglePlacesWeb extends StatefulWidget {
   final InputDecoration? decoration;
   final bool required;
 
-  FlutterGooglePlacesWeb(
-      {Key? key,
-      required this.apiKey,
-      this.proxyURL,
-      this.offset,
-      this.components,
-      this.sessionToken = true,
-      this.decoration,
-      required this.required});
+  final void Function(String address)? onAddressSelected;
+
+  FlutterGooglePlacesWeb({
+    Key? key,
+    required this.apiKey,
+    this.proxyURL,
+    this.offset,
+    this.components,
+    this.sessionToken = true,
+    this.decoration,
+    required this.required,
+    this.onAddressSelected,
+  });
 
   @override
   FlutterGooglePlacesWebState createState() => FlutterGooglePlacesWebState();
@@ -87,7 +90,8 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
       });
     }
 
-    String baseURL = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+    String baseURL =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json';
     String type = 'address';
     String input = Uri.encodeComponent(inputText);
     if (widget.proxyURL == null) {
@@ -142,6 +146,11 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
       FlutterGooglePlacesWeb.value['city'] = clickedAddress.city;
       FlutterGooglePlacesWeb.value['country'] = clickedAddress.country;
     });
+
+    final onAddressSelected = widget.onAddressSelected;
+    if (onAddressSelected != null) {
+      onAddressSelected(clickedAddress.streetAddress);
+    }
   }
 
   @override
@@ -153,7 +162,7 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
       //Google Colors
       Color(0xFF4285F4), //Google Blue
       Color(0xFF0F9D58), //Google Green
-      Color(0xFFF4B400), //Google Tellow
+      Color(0xFFF4B400), //Google Yellow
       Color(0xFFDB4437), //Google Red
     ]).animate(_animationController)
       ..addListener(() {
@@ -239,8 +248,8 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            border:
-                                Border.all(color: Colors.grey[200]!, width: 0.5),
+                            border: Border.all(
+                                color: Colors.grey[200]!, width: 0.5),
                           ),
                         ),
                       )
@@ -267,8 +276,9 @@ class Address {
   String city;
   String country;
   Address({
-    required this.name, 
-    required this.streetAddress, 
-    required this.city, 
-    required this.country});
+    required this.name,
+    required this.streetAddress,
+    required this.city,
+    required this.country,
+  });
 }
