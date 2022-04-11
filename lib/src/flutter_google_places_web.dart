@@ -149,7 +149,7 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
 
     final onAddressSelected = widget.onAddressSelected;
     if (onAddressSelected != null) {
-      onAddressSelected(clickedAddress.streetAddress);
+      onAddressSelected(clickedAddress.name);
     }
   }
 
