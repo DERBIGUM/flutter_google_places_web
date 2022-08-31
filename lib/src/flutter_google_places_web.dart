@@ -88,13 +88,12 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
     }
 
     String type = 'address';
-    String input = Uri.encodeComponent(inputText);
     Uri actualUrl = Uri(
       scheme: 'https',
       host: 'maps.googleapis.com',
       path: '/maps/api/place/autocomplete/json',
       queryParameters: {
-        'input': input,
+        'input': inputText,
         'types': type,
         'key': widget.apiKey,
         'sessiontoken': _sessionToken,
@@ -118,7 +117,8 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
       ).toString();
     }
 
-    //print(componentsURL);
+    //print(actualUrl.toString());
+    //print(proxiedUrl);
     Response response = await Dio().get(proxiedUrl);
     var predictions = response.data['predictions'];
     if (predictions != []) {
