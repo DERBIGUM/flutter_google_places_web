@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_google_places_web/src/search_results_tile.dart';
 import 'package:rainbow_color/rainbow_color.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_google_places_web/src/search_results_tile.dart';
 
 class FlutterGooglePlacesWeb extends StatefulWidget {
   ///[value] stores the clicked address data in
@@ -67,9 +67,6 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
   late AnimationController _animationController;
   late Animation<Color> _loadingTween;
   List<Address> displayedResults = [];
-  String proxiedURL = '';
-  String offsetURL = '';
-  String componentsURL = '';
   String? _sessionToken;
   var uuid = Uuid();
 
@@ -90,29 +87,39 @@ class FlutterGooglePlacesWebState extends State<FlutterGooglePlacesWeb>
       });
     }
 
-    String baseURL =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json';
     String type = 'address';
     String input = Uri.encodeComponent(inputText);
+    Uri actualUrl = Uri(
+      scheme: 'https',
+      host: 'maps.googleapis.com',
+      path: '/maps/api/place/autocomplete/json',
+      queryParameters: {
+        'input': input,
+        'types': type,
+        'key': widget.apiKey,
+        'sessiontoken': _sessionToken,
+        if (widget.offset != null) 'offset': widget.offset,
+        if (widget.components != null) 'components': widget.components,
+      },
+    );
+    String proxiedUrl;
     if (widget.proxyURL == null) {
-      proxiedURL =
-          '$baseURL?input=$input&key=${widget.apiKey}&type=$type&sessiontoken=$_sessionToken';
+      proxiedUrl = actualUrl.toString();
     } else {
-      proxiedURL =
-          '${widget.proxyURL}$baseURL?input=$input&key=${widget.apiKey}&type=$type&sessiontoken=$_sessionToken';
+      final offsetUri = Uri.parse(widget.proxyURL!);
+      proxiedUrl = Uri(
+        scheme: offsetUri.scheme,
+        host: offsetUri.host,
+        port: offsetUri.port,
+        path: offsetUri.path,
+        queryParameters: {
+          'u': actualUrl.toString(),
+        },
+      ).toString();
     }
-    if (widget.offset == null) {
-      offsetURL = proxiedURL;
-    } else {
-      offsetURL = proxiedURL + '&offset=${widget.offset}';
-    }
-    if (widget.components == null) {
-      componentsURL = offsetURL;
-    } else {
-      componentsURL = offsetURL + '&components=${widget.components}';
-    }
+
     //print(componentsURL);
-    Response response = await Dio().get(componentsURL);
+    Response response = await Dio().get(proxiedUrl);
     var predictions = response.data['predictions'];
     if (predictions != []) {
       displayedResults.clear();
